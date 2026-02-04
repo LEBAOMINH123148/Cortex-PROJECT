@@ -2,10 +2,8 @@ import whisper
 import json
 
 # use model
-model = whisper.load_model("small")
-result = model.transcribe(
-    r"C:\Users\pc\Downloads\Yêu_Cầu_Video_Femboy_Ngựa_Nhiệt_Huyết.mp4"
-)
+model = whisper.load_model("small.en")
+result = model.transcribe("Recording.m4a")
 print(result["text"])
 
 # create data to save in json file
