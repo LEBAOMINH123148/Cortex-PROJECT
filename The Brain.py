@@ -3,13 +3,9 @@ from sentence_transformers import SentenceTransformer, util
 
 # load data from json file
 with open("transcript_file.jason") as f:
-    if f is None:
-        print("No transcript file")
-        exit()
-    else:
-        data = json.load(f)
+    data = json.load(f)
 
-# load model to traform sentence to vector
+# load model to transform sentence to vector
 model = SentenceTransformer("all-MiniLM-L6-v2")
 sentences_to_check = []
 for segment in data:
@@ -30,5 +26,6 @@ while True:
         score = i["score"] * 100
         text = data[id]["text"]
         time_start = data[id]["start"]
-        print(f"Time: {time_start}s, Sentence {id}:'{text}' Percentage:{score:.1f}%")
-    print("-" * 20)
+        print(
+            f"Time: {time_start:.1f}s, Sentence {id}:'{text}' Percentage:{score:.1f}%\n"
+        )
