@@ -3,7 +3,7 @@ import json
 
 # use model
 model = whisper.load_model("small.en")
-result = model.transcribe("Recording.m4a")
+result = model.transcribe("Chàng_Trai_Tự_Tin_Trước_Lớp.mp4")
 print(result["text"])
 
 # create data to save in json file
