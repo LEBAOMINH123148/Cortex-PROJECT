@@ -4,7 +4,7 @@ import streamlit as st
 
 @st.cache_resource
 def Loadmodel():
-    model = whisper.load_model("small.en")
+    model = whisper.load_model("tiny")
     return model
 
 
