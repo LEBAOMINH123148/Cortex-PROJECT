@@ -2,19 +2,21 @@ import cv2 as cv
 from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration
 import streamlit as st
+import torch
 
 
 @st.cache_resource
 def Loadmodel():
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
     model = BlipForConditionalGeneration.from_pretrained(
         "Salesforce/blip-image-captioning-base"
-    ).to("cuda")
-    return processor, model
+    ).to(device)
+    return processor, model, device
 
 
 def get_vision_data(video_path):
-    processor, model = Loadmodel()
+    processor, model, device = Loadmodel()
     visual_data = []
     capture = cv.VideoCapture(video_path)
 
@@ -28,7 +30,7 @@ def get_vision_data(video_path):
             break
         framergb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)  # change from bgr to rgb
         pil_image = Image.fromarray(framergb)  # create the image memory
-        input = processor(pil_image, return_tensors="pt").to("cuda")
+        input = processor(pil_image, return_tensors="pt").to(device)
         output = model.generate(**input)
         item = {
             "start": i / fps,
