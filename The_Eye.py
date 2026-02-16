@@ -23,6 +23,10 @@ def get_vision_data(video_path):
     fps = int(capture.get(cv.CAP_PROP_FPS))
     totalfps = int(capture.get(cv.CAP_PROP_FRAME_COUNT))
 
+    if fps == 0 or totalfps == 0:
+        capture.release()
+        return []
+
     for i in range(0, totalfps, fps * 5):
         capture.set(cv.CAP_PROP_POS_FRAMES, i)
         sucess, frame = capture.read()
