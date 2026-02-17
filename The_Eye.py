@@ -3,6 +3,7 @@ from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration
 import streamlit as st
 import torch
+import math
 
 
 @st.cache_resource
@@ -23,9 +24,30 @@ def get_vision_data(video_path):
     fps = int(capture.get(cv.CAP_PROP_FPS))
     totalfps = int(capture.get(cv.CAP_PROP_FRAME_COUNT))
 
-    if fps == 0 or totalfps == 0:
+    try:
+        processor, model, device = Loadmodel()  # model check
+    except Exception as e:
+        print(f"Load model error: {e}")
+        return []
+
+    if not capture.isOpened():
+        print(f"Open file error: {video_path}")  # file open or not
+        return []
+
+    try:
+        # opencv might return np array not number so need to convert it into number
+        fps = float(fps)
+        totalfps = float(totalfps)
+        if math.isnan(fps) or fps <= 0 or totalfps <= 0:  # file type check
+            print("File is mp3 or error")
+            capture.release()
+            return []
+    except ValueError:
         capture.release()
         return []
+
+    fps = int(fps)
+    totalfps = int(totalfps)
 
     for i in range(0, totalfps, fps * 5):
         capture.set(cv.CAP_PROP_POS_FRAMES, i)
