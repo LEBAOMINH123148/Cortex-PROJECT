@@ -18,7 +18,8 @@ if uploaded_file:
 
         if submit_button:
             if query:
-                Working(query, "temp_uploaded_file", uploaded_file.name)
+                unique_key = f"{uploaded_file.name}_{uploaded_file.size}"
+                Working(query, "temp_uploaded_file", unique_key)
             else:
                 st.warning("Please tell us what you want to find first")
 

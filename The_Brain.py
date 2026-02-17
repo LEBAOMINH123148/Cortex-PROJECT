@@ -12,7 +12,7 @@ def Loadmodel():
 
 # The Ear and The Eye, return audio and vision after transcribed
 @st.cache_data
-def process_uploadedfile(file_path, file_name):
+def process_uploadedfile(file_path, unique_key):
     user_data = []
     audio_data = get_audio_data(file_path)
     vision_data = get_vision_data(file_path)
@@ -31,8 +31,8 @@ def process_uploadedfile(file_path, file_name):
 
 
 # The Brain
-def Working(user_input, file_path, file_name):
-    embedding, user_data, model = process_uploadedfile(file_path, file_name)
+def Working(user_input, file_path, unique_key):
+    embedding, user_data, model = process_uploadedfile(file_path, unique_key)
     user_input = model.encode(user_input.lower())  # embedd the user_input into vector
     result = util.semantic_search(user_input, embedding, top_k=3)  # compare them
     for i in result[0]:
