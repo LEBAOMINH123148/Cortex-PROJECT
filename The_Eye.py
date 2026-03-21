@@ -3,7 +3,6 @@ from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration
 import streamlit as st
 import torch
-import math
 
 
 @st.cache_resource
@@ -16,38 +15,21 @@ def Loadmodel():
     return processor, model, device
 
 
-def get_vision_data(video_path):
+def get_vision_data(video_path, unique_key):
     processor, model, device = Loadmodel()
     visual_data = []
     capture = cv.VideoCapture(video_path)
 
-    fps = int(capture.get(cv.CAP_PROP_FPS))
-    totalfps = int(capture.get(cv.CAP_PROP_FRAME_COUNT))
-
     try:
-        processor, model, device = Loadmodel()  # model check
-    except Exception as e:
-        print(f"Load model error: {e}")
-        return []
-
-    if not capture.isOpened():
-        print(f"Open file error: {video_path}")  # file open or not
-        return []
-
-    try:
-        # opencv might return np array not number so need to convert it into number
-        fps = float(fps)
-        totalfps = float(totalfps)
-        if math.isnan(fps) or fps <= 0 or totalfps <= 0:  # file type check
+        fps = int(capture.get(cv.CAP_PROP_FPS))
+        totalfps = int(capture.get(cv.CAP_PROP_FRAME_COUNT))
+        if fps <= 0 or totalfps <= 0:  # file type check
             print("File is mp3 or error")
             capture.release()
             return []
-    except ValueError:
+    except ValueError:  # if fps = int(NaN)
         capture.release()
         return []
-
-    fps = int(fps)
-    totalfps = int(totalfps)
 
     for i in range(0, totalfps, fps * 5):
         capture.set(cv.CAP_PROP_POS_FRAMES, i)
@@ -57,12 +39,28 @@ def get_vision_data(video_path):
         framergb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)  # change from bgr to rgb
         pil_image = Image.fromarray(framergb)  # create the image memory
         input = processor(pil_image, return_tensors="pt").to(device)
-        output = model.generate(**input)
+        output = model.generate(
+            **input,
+            repetition_penalty=1.5,
+        )
         item = {
-            "start": i / fps,
+            "start": max(0, (i / fps) - 1),
+            "end": min((i / fps) + 5, totalfps / fps),
             "text": "Visual: " + processor.decode(output[0], skip_special_tokens=True),
+            "file_id": unique_key,
         }
         visual_data.append(item)
 
     capture.release()
-    return visual_data
+    # stuff for Vcollection
+    Vlist_ids = []
+    Vlist_document = []
+    Vlist_metadatas = []
+    n = 1
+    for i in visual_data:
+        Vlist_ids.append(f"{unique_key}_{n}")
+        Vlist_document.append(i["text"])
+        item = {"start": i["start"], "end": i["end"], "file_id": i["file_id"]}
+        Vlist_metadatas.append(item)
+        n += 1
+    return Vlist_ids, Vlist_document, Vlist_metadatas

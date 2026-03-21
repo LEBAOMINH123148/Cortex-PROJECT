@@ -12,15 +12,28 @@ if uploaded_file:
         )  # whisper need file path not file on ram (st.file_upload store data on ram)
     st.success("File Uploaded")
 
-    with st.form(key="search_form"):
-        query = st.text_input("What do you want to find?: ")
-        submit_button = st.form_submit_button("Search")
-
-        if submit_button:
-            if query:
-                unique_key = f"{uploaded_file.name}_{uploaded_file.size}"
-                Working(query, "temp_uploaded_file", unique_key)
-            else:
-                st.warning("Please tell us what you want to find first")
+    if uploaded_file.name.lower().endswith((".mp4", ".mov", ".avi", ".mkv")):
+        with st.form(key="search_form"):
+            Vquery = st.text_input("What do you want to find?(visual): ")
+            Aquery = st.text_input("What do you want to find?(audio): ")
+            submit_button = st.form_submit_button("Search")
+            if submit_button:
+                if Vquery or Aquery:
+                    unique_key = f"{uploaded_file.name}_{uploaded_file.size}"
+                    filename = uploaded_file.name
+                    Working(Vquery, Aquery, "temp_uploaded_file", unique_key, filename)
+                else:
+                    st.warning("Please tell us what you want to find first")
+    else:
+        with st.form(key="search_form"):
+            Aquery = st.text_input("What do you want to find?: ")
+            submit_button = st.form_submit_button("Search")
+            if submit_button:
+                if Aquery:
+                    unique_key = f"{uploaded_file.name}_{uploaded_file.size}"
+                    filename = uploaded_file.name
+                    Working("", Aquery, "temp_uploaded_file", unique_key, filename)
+                else:
+                    st.warning("Please tell us what you want to find first")
 
     os.remove("temp_uploaded_file")
