@@ -1,3 +1,6 @@
+import os
+os.environ["HF_HOME"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "huggingface")
+
 import cv2 as cv
 from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration

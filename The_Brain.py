@@ -76,15 +76,17 @@ def Working(Vuser_input, Auser_input, file_path, unique_key, filename):
         if merged:
             for item in merged:
                 time_start = item[0]
+                time_end = item[1]
                 text = item[2] + " " + item[3]
                 score = item[4]
                 st.write(
-                    f"Time start: {time_start:.1f}s {text} - Percentage: {score:.1f}%\n"
+                    f"Time: {time_start:.1f}s - {time_end:.1f}s {text} - Percentage: {score:.1f}%\n"
                 )
                 st.video(file_path, format="video/mp4", start_time=time_start)
     else:
         for i in range(len(Ameta)):
             time_start = Ameta[i]["start"]
+            time_end = Ameta[i]["end"]
             text = Adoc[i]
             if Adis[i] < 1:
                 score = abs((1 - Adis[i]) * 100)
@@ -92,6 +94,6 @@ def Working(Vuser_input, Auser_input, file_path, unique_key, filename):
                 score = 0
 
             st.write(
-                f"Time start: {time_start:.1f}s {text} - Percentage: {score:.1f}%\n"
+                f"Time: {time_start:.1f}s - {time_end:.1f}s {text} - Percentage: {score:.1f}%\n"
             )
             st.audio(file_path, format="audio/wav", start_time=time_start)

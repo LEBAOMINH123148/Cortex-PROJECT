@@ -8,3 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
+venv/
+
+# HuggingFace Models
+cortex_whisper_final/
+models/

@@ -2,7 +2,7 @@ import streamlit as st
 import os
 from The_Brain import Working
 
-st.title("OHaiYo :red[ONi-chaan]", text_alignment="center")
+st.title("Wellcome to :red[Cortex]", text_alignment="center")
 
 uploaded_file = st.file_uploader("Upload your file here(Video or audio): ")
 if uploaded_file:
