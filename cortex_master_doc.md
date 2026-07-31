@@ -6,14 +6,14 @@ Below is the current directory structure of the project:
 
 ```text
 Cortex-PROJECT/
-├── .streamlit/             # Streamlit UI configuration
+├── .gradio/                # Gradio UI configuration
 ├── cortexdb/               # Directory containing ChromaDB Vector Database data
 ├── models/                 # Directory storing local AI models
 │   ├── huggingface/        # Contains BLIP model used for image processing
 │   └── whisper/            # Contains Whisper model used for audio processing
 ├── venv/                   # Python Virtual environment
 ├── __pycache__/            # Python cache
-├── app.py                  # Main entry point, contains UI (Streamlit)
+├── app.py                  # Main entry point, contains UI (Gradio)
 ├── The_Brain.py            # Core module: logic processing, DB querying, scoring and merging results
 ├── The_Ear.py              # Audio processing module: uses Whisper for audio transcription
 ├── The_Eye.py              # Image processing module: uses OpenCV and BLIP captioning
@@ -31,7 +31,7 @@ The Cortex project is designed to analyze multimodal information (both audio and
 ### Detailed Data Flow:
 
 1. **Data Reception (Upload)**:
-   - The user uploads a video or audio file via the Streamlit interface (`app.py`).
+   - The user uploads a video or audio file via the Gradio interface (`app.py`).
    - The file is loaded into RAM and then temporarily written to the file system as `temp_uploaded_file` so that AI models can directly manipulate and read the bitstream from the hard drive.
 
 2. **Frame and Image Extraction (The Eye - OpenCV & BLIP)**:
@@ -57,11 +57,11 @@ The Cortex project is designed to analyze multimodal information (both audio and
 
 6. **Display**:
    - The UI displays a list of potential results to the user (Time Range, Dialogue/Scene Description, Match Percentage).
-   - Streamlit automatically plays the video/audio with the `start_time` parameter perfectly aligned with the moment the found event occurs.
+   - Gradio displays the resulting media file alongside a markdown text detailing the exact matching timestamps so the user can seek to them.
 
 ## 3. Function of each Module/File
 
-- **`app.py`**: The main entry point. This file builds the overall UI with Streamlit, manages the search form, file upload, receives and manages user inputs, acts as a bridge to transmit data to the main processing module (`The_Brain.py`), and handles the cleanup of temporary files (`os.remove`).
+- **`app.py`**: The main entry point. This file builds the overall UI with Gradio, manages the search form, file upload, receives and manages user inputs, acts as a bridge to transmit data to the main processing module (`The_Brain.py`), and handles temporary file preparation.
 - **`The_Brain.py`**: The coordinator. Directly responsible for communicating with ChromaDB. This file integrates the extraction processing flow (calling functions from The_Ear and The_Eye), puts JSON/Dict data into ChromaDB for upsert, and is also where it receives input queries, handles the time overlapping algorithm, and ranks the results.
 - **`The_Ear.py`**: Specialized for Audio signal processing. Responsible for initializing and caching the fine-tuned Whisper model via HuggingFace pipeline. It loads audio/video files safely using `ffmpeg` and parses the Speech-to-Text results into precise time-aligned sentences as an array of Dictionaries, making it easy to analyze and load into the DB.
 - **`The_Eye.py`**: Specialized for Computer Vision. Responsible for opening videos, extracting necessary frames according to a periodic quota to skip redundant frames (1 frame / 5 seconds), then passing them through the HuggingFace BLIP model to caption the image content, returning raw data to serve image indexing.
