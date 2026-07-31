@@ -1,55 +1,39 @@
-import gradio as gr
+import streamlit as st
 import os
-import shutil
 from The_Brain import Working
 
-def process_file(uploaded_file, v_query, a_query):
-    if uploaded_file is None:
-        return "Please upload a file.", None, None
+st.title("Wellcome to :red[Cortex]", text_alignment="center")
 
-    original_filename = os.path.basename(uploaded_file.name)
-    file_ext = os.path.splitext(original_filename)[1].lower()
-    
-    # We copy the file with its original extension so cv2 and ffmpeg can read it correctly
-    temp_path = "temp_uploaded_file" + file_ext
-    shutil.copy(uploaded_file.name, temp_path)
-    
-    file_size = os.path.getsize(temp_path)
-    unique_key = f"{original_filename}_{file_size}"
-    
-    if not (v_query or a_query):
-        return "Please tell us what you want to find first.", None, None
-        
-    try:
-        if file_ext in [".mp4", ".mov", ".avi", ".mkv"]:
-            result_md = Working(v_query, a_query, temp_path, unique_key, original_filename)
-            return result_md, temp_path, None
-        else:
-            result_md = Working("", a_query, temp_path, unique_key, original_filename)
-            return result_md, None, temp_path
-    except Exception as e:
-        return f"Error: {str(e)}", None, None
+uploaded_file = st.file_uploader("Upload your file here(Video or audio): ")
+if uploaded_file:
+    with open("temp_uploaded_file", "wb") as f:
+        f.write(
+            uploaded_file.getvalue()  # create temp file that has content of the user uploaded file to put it in whisper
+        )  # whisper need file path not file on ram (st.file_upload store data on ram)
+    st.success("File Uploaded")
 
-with gr.Blocks(title="Cortex") as app:
-    gr.Markdown("<h1 style='text-align: center;'><span style='color: red;'>Welcome to Cortex</span></h1>")
-    
-    with gr.Row():
-        with gr.Column():
-            file_input = gr.File(label="Upload your file here (Video or Audio)")
-            v_query_input = gr.Textbox(label="What do you want to find? (Visual query for video)")
-            a_query_input = gr.Textbox(label="What do you want to find? (Audio query)")
-            submit_btn = gr.Button("Search", variant="primary")
-            
-        with gr.Column():
-            output_text = gr.Markdown(label="Results")
-            output_video = gr.Video(label="Video Player")
-            output_audio = gr.Audio(label="Audio Player")
+    if uploaded_file.name.lower().endswith((".mp4", ".mov", ".avi", ".mkv")):
+        with st.form(key="search_form"):
+            Vquery = st.text_input("What do you want to find?(visual): ")
+            Aquery = st.text_input("What do you want to find?(audio): ")
+            submit_button = st.form_submit_button("Search")
+            if submit_button:
+                if Vquery or Aquery:
+                    unique_key = f"{uploaded_file.name}_{uploaded_file.size}"
+                    filename = uploaded_file.name
+                    Working(Vquery, Aquery, "temp_uploaded_file", unique_key, filename)
+                else:
+                    st.warning("Please tell us what you want to find first")
+    else:
+        with st.form(key="search_form"):
+            Aquery = st.text_input("What do you want to find?: ")
+            submit_button = st.form_submit_button("Search")
+            if submit_button:
+                if Aquery:
+                    unique_key = f"{uploaded_file.name}_{uploaded_file.size}"
+                    filename = uploaded_file.name
+                    Working("", Aquery, "temp_uploaded_file", unique_key, filename)
+                else:
+                    st.warning("Please tell us what you want to find first")
 
-    submit_btn.click(
-        fn=process_file,
-        inputs=[file_input, v_query_input, a_query_input],
-        outputs=[output_text, output_video, output_audio]
-    )
-
-if __name__ == "__main__":
-    app.launch(share=False)
+    os.remove("temp_uploaded_file")

@@ -1,4 +1,4 @@
-import functools
+import streamlit as st
 import os
 import torch
 import subprocess
@@ -6,7 +6,7 @@ import numpy as np
 from transformers import pipeline
 import re
 
-@functools.lru_cache(maxsize=1)
+@st.cache_resource
 def Loadmodel():
     model_dir = "Minh1506/cortex-whisper"
     device = "cuda:0" if torch.cuda.is_available() else "cpu"

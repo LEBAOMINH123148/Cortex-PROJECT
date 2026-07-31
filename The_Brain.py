@@ -1,7 +1,7 @@
+import streamlit as st
 from The_Eye import get_vision_data
 from The_Ear import get_audio_data
 import chromadb
-import functools
 
 client = chromadb.PersistentClient(path="./cortexdb")
 Acollection = client.get_or_create_collection(name="Audio")
@@ -9,7 +9,7 @@ Vcollection = client.get_or_create_collection(name="Video")
 
 
 # The Ear and The Eye, return audio and vision after transcribed to put it in chroma collection
-@functools.lru_cache(maxsize=1)
+@st.cache_data
 def process_uploadedfile(file_path, unique_key, filename):
     Alist_ids, Alist_document, Alist_metadatas = get_audio_data(file_path, unique_key)
     if len(Alist_ids) > 0:  # for no audio in mp3
@@ -44,7 +44,6 @@ def Working(Vuser_input, Auser_input, file_path, unique_key, filename):
     Ameta = Aresult["metadatas"][0]
     Adoc = Aresult["documents"][0]
     Adis = Aresult["distances"][0]
-
     if filename.lower().endswith(
         (".mp4", ".mov", ".avi", ".mkv")
     ):  # for video, merge audio and vision result based on time and show the video with matched time
@@ -74,19 +73,18 @@ def Working(Vuser_input, Auser_input, file_path, unique_key, filename):
                     merged.append((A_start, A_end, Atext, Vtext, combined_score))
 
         merged.sort(key=lambda x: x[4], reverse=True)  # sort by score
-        output_md = ""
         if merged:
-            for i in range(3):
-                item = merged[i]
+            for item in merged:
                 time_start = item[0]
                 time_end = item[1]
                 text = item[2] + " " + item[3]
                 score = item[4]
-                output_md += f"**Time:** {time_start:.1f}s - {time_end:.1f}s | **Result:** {text} | **Match:** {score:.1f}%\n\n"
-        return output_md if output_md else "No matches found."
+                st.write(
+                    f"Time: {time_start:.1f}s - {time_end:.1f}s {text} - Percentage: {score:.1f}%\n"
+                )
+                st.video(file_path, format="video/mp4", start_time=time_start)
     else:
-        output_md = ""
-        for i in range(3):
+        for i in range(len(Ameta)):
             time_start = Ameta[i]["start"]
             time_end = Ameta[i]["end"]
             text = Adoc[i]
@@ -95,5 +93,7 @@ def Working(Vuser_input, Auser_input, file_path, unique_key, filename):
             else:
                 score = 0
 
-            output_md += f"**Time:** {time_start:.1f}s - {time_end:.1f}s | **Text:** {text} | **Match:** {score:.1f}%\n\n"
-        return output_md if output_md else "No matches found."
+            st.write(
+                f"Time: {time_start:.1f}s - {time_end:.1f}s {text} - Percentage: {score:.1f}%\n"
+            )
+            st.audio(file_path, format="audio/wav", start_time=time_start)

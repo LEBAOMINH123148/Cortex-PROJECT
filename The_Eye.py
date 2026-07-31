@@ -4,11 +4,11 @@ os.environ["HF_HOME"] = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 import cv2 as cv
 from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration
-import functools
+import streamlit as st
 import torch
 
 
-@functools.lru_cache(maxsize=1)
+@st.cache_resource
 def Loadmodel():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
